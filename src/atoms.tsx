@@ -1,21 +1,14 @@
 import { atom, selector } from "recoil";
 
-export const minutesState = atom({
-  key: "minutes",
-  default: "",
-});
+interface IToDoState {
+  [key: string]: string[];
+} // interface를 작성하지 않으면 TS는 toDoState의 state로 "toDo", "doing", "done"만을 인식한다. 즉, 그외 값(any)을 허용하지 않는다.
 
-export const secondsSelector = selector({
-  key: "seconds",
-  get: ({ get }) => {
-    const value = Number(get(minutesState));
-    const m = value === 0 ? "" : String(value * 60);
-
-    return m;
-  },
-  set: ({ set }, newValue) => {
-    const result = Number(newValue) / 60;
-    const m = result === 0 ? "" : String(result);
-    set(minutesState, m);
+export const toDoState = atom<IToDoState>({
+  key: "toDo",
+  default: {
+    toDo: ["a", "b", "c", "d", "e"],
+    doing: [],
+    done: [],
   },
 });

@@ -1,41 +1,59 @@
-import styled from "styled-components";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { minutesState, secondsSelector } from "../atoms";
-import React from "react";
+import styled, { createGlobalStyle } from "styled-components";
+import { DragDropContext, Droppable, DropResult } from "react-beautiful-dnd";
+import reset from "styled-reset";
+import { useRecoilState } from "recoil";
+import { toDoState } from "../atoms";
+import DragabbleCard from "../components/DraggableCard";
+import DroppableBoard from "../components/DroppableBoard";
 
-const Input = styled.input`
-  font-size: 24px;
+const GlobalStyle = createGlobalStyle`
+  ${reset}
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    width:100vw;
+    height:100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: ${(props) => props.theme.bgColor};
+  }
+`;
+
+const Container = styled.div`
+  width: 90vw;
+  height: 100vh;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  align-items: center;
+  gap: 30px;
+  margin: 0 auto;
 `;
 
 function Root() {
-  const [minutes, setMinutes] = useRecoilState(minutesState);
-  const [seconds, setSeconds] = useRecoilState(secondsSelector);
-  const onMinutesChange = (event: React.FormEvent<HTMLInputElement>) => {
-    setMinutes(event.currentTarget.value);
-  };
-  const onSecondsChange = (event: React.FormEvent<HTMLInputElement>) => {
-    setSeconds(event.currentTarget.value);
-  };
-  const onFocus = (event: React.FormEvent<HTMLInputElement>) => {
-    event.currentTarget.value = "";
+  const [toDos, setToDos] = useRecoilState(toDoState);
+  const onDragEnd = ({ draggableId, destination, source }: DropResult) => {
+    // setToDos((cur) => {
+    //   if (!destination) return cur;
+    //   let copy = [...cur];
+    //   copy.splice(source.index, 1);
+    //   copy.splice(destination?.index, 0, draggableId);
+    //   return copy;
+    // });
   };
   return (
-    <>
-      <Input
-        onChange={onMinutesChange}
-        onFocus={onFocus}
-        value={minutes}
-        type="text"
-        placeholder="Minutes"
-      />
-      <Input
-        onChange={onSecondsChange}
-        onFocus={onFocus}
-        value={seconds}
-        type="text"
-        placeholder="Seconds"
-      />
-    </>
+    <Container>
+      <GlobalStyle />
+      <DragDropContext onDragEnd={onDragEnd}>
+        {Object.keys(toDos).map((boardId) => (
+          <DroppableBoard
+            key={boardId}
+            toDos={toDos[boardId]}
+            boardId={boardId}
+          />
+        ))}
+      </DragDropContext>
+    </Container>
   );
 }
 
