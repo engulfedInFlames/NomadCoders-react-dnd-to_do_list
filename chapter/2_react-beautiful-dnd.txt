@@ -1,0 +1,20 @@
+1. React Beautiful DnD
+: url(https://egghead.io/courses/beautiful-and-accessible-drag-and-drop-with-react-beautiful-dnd)
+: Interactive한 Drag & Drop 애니메이션 구현할 수 있게 하는 모듈이다.
+: 기능이 활성화되지 않았을 때는 StrictMode를 꺼 본다.
+    .1 DragDropContext
+    : DnD를 구현하기 위한 Container
+
+    .2 Droppable
+    : children으로 함수를 받으며, droppableId 프로퍼티를 필요로 한다.
+
+    .3 Draggable
+    : children으로 함수를 받으며, draggableId과 index 프로퍼티를 필요로 한다.
+
+    .4 provided
+    Droppable & Draggable 컴포넌트의 props를 받아올 수 있다.
+
+2. React Memo
+: React는 state 변화에 따라 컴포넌트를 리렌더링한다. 부모 요소의 state가 변화하면 자식 요소도 전부 리렌더링된다.
+때로는 이 동작이 불필요할 수 있다. 부모 요소의 state가 변경됐지만, 자식 요소의 일부만을 리렌더링하고 싶을 수도 있기 때문이다.
+이때 React Memo를 사용할 수 있다.

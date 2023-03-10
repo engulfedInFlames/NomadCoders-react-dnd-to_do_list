@@ -2,8 +2,7 @@ import React from "react";
 import { Draggable } from "react-beautiful-dnd";
 import styled from "styled-components";
 
-const Card = styled.li`
-  width: 80%;
+const Card = styled.div`
   display: flex;
   align-items: center;
   border-radius: 8px;

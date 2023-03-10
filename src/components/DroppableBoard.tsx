@@ -2,12 +2,42 @@ import styled from "styled-components";
 import { Droppable } from "react-beautiful-dnd";
 import DraggableCard from "./DraggableCard";
 
-const Board = styled.ul`
+interface IDroppableBoardProps {
+  toDos: string[];
+  boardId: string;
+}
+interface IBoardProps {
+  isDraggingOver: boolean;
+  isDraggingFromThis: boolean;
+}
+
+const Board = styled.div<IBoardProps>`
+  width: 80%;
+  background-color: ${(props) =>
+    props.isDraggingOver
+      ? "#a4b0be"
+      : props.isDraggingFromThis
+      ? "#dfe4ea"
+      : props.theme.boardColor};
+  flex-grow: 1;
+  transition: background-color 0.2s ease-in-out;
+`;
+
+const Title = styled.span`
+  display: block;
+  font-size: 32px;
+  font-weight: bold;
+  color: black;
+  text-align: center;
+  margin-bottom: 15px;
+`;
+
+const Wrapper = styled.div`
   max-width: 450px;
   min-height: 40%;
-  display: grid;
-  grid-auto-flow: row;
-  grid-auto-rows: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   border-radius: 15px;
   background-color: ${(props) => props.theme.boardColor};
   color: white;
@@ -17,23 +47,26 @@ const Board = styled.ul`
   list-style-type: none;
 `;
 
-interface IDroppableBoard {
-  toDos: string[];
-  boardId: string;
-}
-
-function DroppableBoard({ toDos, boardId }: IDroppableBoard) {
+function DroppableBoard({ toDos, boardId }: IDroppableBoardProps) {
   return (
-    <Droppable droppableId={boardId}>
-      {(magic) => (
-        <Board ref={magic.innerRef} {...magic.droppableProps}>
-          {toDos.map((toDo, index) => (
-            <DraggableCard key={toDo} toDo={toDo} index={index} />
-          ))}
-          {magic.placeholder}
-        </Board>
-      )}
-    </Droppable>
+    <Wrapper>
+      <Title>{boardId}</Title>
+      <Droppable droppableId={boardId}>
+        {(magic, snapshot) => (
+          <Board
+            isDraggingOver={snapshot.isDraggingOver}
+            isDraggingFromThis={Boolean(snapshot.draggingFromThisWith)}
+            ref={magic.innerRef}
+            {...magic.droppableProps}
+          >
+            {toDos.map((toDo, index) => (
+              <DraggableCard key={toDo} toDo={toDo} index={index} />
+            ))}
+            {magic.placeholder}
+          </Board>
+        )}
+      </Droppable>
+    </Wrapper>
   );
 }
 

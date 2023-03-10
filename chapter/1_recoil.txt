@@ -1,0 +1,92 @@
+1. Recoil
+    .0 The reason why we use "Recoil"
+    : Client-side에서 전역 데이터를 생성하고 관리하기 위해서
+
+    .1 atom
+
+    .2 selector
+    : atom의 값을 변경하게 되면, atom을 구독하고 있는 모든 컴포넌트의 상태가 변경되므로,
+    상태를 변경하고 싶지 않은 컴포넌트까지 컴퓨터가 재연산하게 된다.
+    selector은 Recoil에서 제공하는 일종의 함수로, input을 받으면 지정된 연산을 수행한 뒤에
+    결과값을 반환하고, 해당 값을 받는 컴포넌트는 리렌더링됩니다.
+    즉, atom을 selector의 인자로 주게 되면, 기존에 해당 atom을 구독한 모든 컴포넌트를 리렌더링할 필요 없이
+    selector의 결과값을 받는 컴포넌트만을 리렌더링 할 수 있게 하는 것입니다.
+    최소화, 최적화
+    lets us build dynamic data that depends on other data.
+    
+        .1 get
+
+        .2 set
+        : 인자로 받은 state를 수정할 수 있게 한다.
+
+    .3 useRecoilState
+    : atom을 인자로 받게 되면, state와 state를 수정하는 함수를,
+    selector을 인자로 받게 되면, get 함수의 반환값과 set 함수를 배열로 받는다.
+
+
+// Root.tsx
+import styled from "styled-components";
+import { useRecoilState } from "recoil";
+import { minutesState, secondsSelector } from "../atoms";
+import React from "react";
+
+const Input = styled.input`
+  font-size: 24px;
+`;
+
+function Root() {
+  const [minutes, setMinutes] = useRecoilState(minutesState);
+  const [seconds, setSeconds] = useRecoilState(secondsSelector);
+  const onMinutesChange = (event: React.FormEvent<HTMLInputElement>) => {
+    setMinutes(event.currentTarget.value);
+  };
+  const onSecondsChange = (event: React.FormEvent<HTMLInputElement>) => {
+    setSeconds(event.currentTarget.value);
+  };
+  const onFocus = (event: React.FormEvent<HTMLInputElement>) => {
+    event.currentTarget.value = "";
+  };
+  return (
+    <>
+      <Input
+        onChange={onMinutesChange}
+        onFocus={onFocus}
+        value={minutes}
+        type="text"
+        placeholder="Minutes"
+      />
+      <Input
+        onChange={onSecondsChange}
+        onFocus={onFocus}
+        value={seconds}
+        type="text"
+        placeholder="Seconds"
+      />
+    </>
+  );
+}
+
+export default Root;
+
+// atoms.tsx
+import { atom, selector } from "recoil";
+
+export const minutesState = atom({
+  key: "minutes",
+  default: "",
+});
+
+export const secondsSelector = selector({
+  key: "seconds",
+  get: ({ get }) => {
+    const value = Number(get(minutesState));
+    const m = value === 0 ? "" : String(value * 60);
+
+    return m;
+  },
+  set: ({ set }, newValue) => {
+    const result = Number(newValue) / 60;
+    const m = result === 0 ? "" : String(result);
+    set(minutesState, m);
+  },
+});
