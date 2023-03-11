@@ -12,7 +12,7 @@
     : children으로 함수를 받으며, draggableId과 index 프로퍼티를 필요로 한다.
 
     .4 provided
-    Droppable & Draggable 컴포넌트의 props를 받아올 수 있다.
+    Droppable & Draggable 컴포넌트의 props를 받아올 수 있다. (e.g. snapshot)
 
 2. React Memo
 : React는 state 변화에 따라 컴포넌트를 리렌더링한다. 부모 요소의 state가 변화하면 자식 요소도 전부 리렌더링된다.
