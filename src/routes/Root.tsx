@@ -1,23 +1,23 @@
-import styled, { createGlobalStyle } from "styled-components";
-import { DragDropContext, Droppable, DropResult } from "react-beautiful-dnd";
-import reset from "styled-reset";
+import { useEffect } from "react";
 import { useRecoilState } from "recoil";
 import { IToDoState, toDoState } from "../atoms";
+import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import DroppableBoard from "../components/DroppableBoard";
+import toDoStorage from "../components/toDoStorage";
+import styled, { createGlobalStyle } from "styled-components";
+import reset from "styled-reset";
 
 /*
 Code Challenge
 1. Form 디자인하기 ✅
-2. LocalStorage 만들어서 toDos 저장하기
+2. LocalStorage 만들어서 toDos 저장하기 ✅
 3. 삭제 버튼 만들기
 4. Board 바깥으로 드롭하면 삭제되는 기능 추가하기
 5. Board의 순서도 바꿀 수 있는 기능 추가하기
 6. Board 만들기 기능 추가하기
-
 */
 
 const GlobalStyle = createGlobalStyle`
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
   ${reset}
   * {
     box-sizing: border-box;
@@ -29,6 +29,8 @@ const GlobalStyle = createGlobalStyle`
     background-color: ${(props) => props.theme.bgColor};
   }
 `;
+
+type IStorageKey = string;
 
 const Container = styled.div`
   width: 90vw;
@@ -43,18 +45,51 @@ const Container = styled.div`
 
 function Root() {
   const [toDos, setToDos] = useRecoilState(toDoState);
+  const initialBoards = ["To do", "Doing", "Done"];
+
+  useEffect(() => {
+    setToDos((_) => {
+      const newBoards: IToDoState = {};
+
+      // Board가 하나도 없을 때는 initial boards를 보여준다.
+      if (!toDoStorage.length) {
+        initialBoards.forEach((title) => {
+          console.log("Executed");
+          toDoStorage.setItem(title, "[]");
+        });
+      }
+
+      for (let i = 0; i < toDoStorage.length; i++) {
+        const key = toDoStorage.key(i) as IStorageKey;
+        const tasks = JSON.parse(toDoStorage.getItem(key) || "[]"); // JSON.parse에 arg로 string만 올 수 있기 때문에, null이나 undefined가 오지 않게 해야 한다.
+        newBoards[key] = tasks;
+      }
+      return newBoards;
+    });
+  }, []);
+
   const onDragEnd = (dragInfo: DropResult) => {
-    const { draggableId, destination, source } = dragInfo;
+    const { destination, source } = dragInfo;
     if (!destination) return;
-    setToDos((prev) => {
-      const copyBoards: IToDoState = {};
-      Object.keys(prev).forEach((key) => {
-        copyBoards[key] = [...prev[key]]; // 깊은 복사로 원래 것을 참조하지 않게 한다.
+
+    setToDos((oldBoards) => {
+      const srcDroppableId = source.droppableId;
+      const destDroppableId = destination.droppableId;
+      const task = oldBoards[srcDroppableId][source.index];
+      const newBoards: IToDoState = {};
+      Object.keys(oldBoards).forEach((key) => {
+        newBoards[key] = [...oldBoards[key]]; // 깊은 복사
       });
-      const obj = copyBoards[source.droppableId][source.index];
-      copyBoards[source.droppableId].splice(source.index, 1);
-      copyBoards[destination.droppableId].splice(destination.index, 0, obj);
-      return copyBoards;
+
+      // Boards 수정 및 Session storage 수정
+      const newSrcBoard = newBoards[srcDroppableId].splice(source.index, 1);
+      newBoards[destDroppableId].splice(destination.index, 0, { ...task });
+      const newDestBoard = [...newBoards[destDroppableId]]; // splice는 아무 것도 제거하지 않으면 빈 배열을 반환한다.
+
+      // Session storage 수정
+      toDoStorage[srcDroppableId] = JSON.stringify([...newSrcBoard]);
+      toDoStorage[destDroppableId] = JSON.stringify([...newDestBoard]);
+      return newBoards;
     });
 
     // else if (destination.droppableId === source.droppableId) {

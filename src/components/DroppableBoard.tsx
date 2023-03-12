@@ -1,9 +1,10 @@
-import styled from "styled-components";
+import { useSetRecoilState } from "recoil";
+import { useForm } from "react-hook-form";
 import { Droppable } from "react-beautiful-dnd";
 import DraggableCard from "./DraggableCard";
-import { useForm } from "react-hook-form";
 import { IToDo, toDoState } from "../atoms";
-import { useRecoilState, useSetRecoilState } from "recoil";
+import toDoStorage from "./toDoStorage";
+import styled from "styled-components";
 
 interface IDroppableBoardProps {
   toDos: IToDo[];
@@ -68,7 +69,7 @@ const Board = styled.div<IBoardProps>`
   grid-auto-flow: row;
   grid-auto-rows: 60px;
   background-color: ${(props) =>
-    props.boardId === "To Do"
+    props.boardId === "To do"
       ? props.isDraggingOver
         ? "#0984e3"
         : props.isDraggingFromThis
@@ -94,24 +95,37 @@ function DroppableBoard({ toDos, boardId }: IDroppableBoardProps) {
   const { register, setValue, handleSubmit } = useForm<IForm>();
   const setToDos = useSetRecoilState(toDoState);
   const onSubmit = ({ toDo }: IForm) => {
-    const newObj = {
+    const task = {
       id: Date.now(),
       text: toDo,
     };
+
+    // 세션 스토리지에 task 저장
+    if (toDoStorage.getItem(boardId)) {
+      const tasks = [task, ...JSON.parse(toDoStorage.getItem(boardId)!)];
+      const filteredTasks = tasks.filter(
+        (task) => Object.keys(task).length !== 0
+      );
+      toDoStorage.setItem(boardId, JSON.stringify(filteredTasks));
+    } else {
+      toDoStorage.setItem(boardId, JSON.stringify([task]));
+    }
+    // 입력 받은 task를 board에 저장
     setToDos((allBoards) => {
       return {
         ...allBoards,
-        [boardId]: [newObj, ...allBoards[boardId]],
+        [boardId]: [task, ...allBoards[boardId]],
       };
     });
     setValue("toDo", "");
   };
   const inputPlaceholder =
-    boardId === "To Do"
+    boardId === "To do"
       ? "What should I do?"
       : boardId === "Doing"
       ? "What am I doing?"
       : "What did I finish?";
+
   return (
     <Wrapper>
       <Title>{boardId}</Title>
