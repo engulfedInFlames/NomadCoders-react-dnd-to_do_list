@@ -50,7 +50,6 @@ function Root() {
   useEffect(() => {
     setToDos((_) => {
       const newBoards: IToDoState = {};
-
       // Board가 하나도 없을 때는 initial boards를 보여준다.
       if (!toDoStorage.length) {
         initialBoards.forEach((title) => {
@@ -59,11 +58,11 @@ function Root() {
         });
       }
 
-      for (let i = 0; i < toDoStorage.length; i++) {
-        const key = toDoStorage.key(i) as IStorageKey;
-        const tasks = JSON.parse(toDoStorage.getItem(key) || "[]"); // JSON.parse에 arg로 string만 올 수 있기 때문에, null이나 undefined가 오지 않게 해야 한다.
+      const keys = ["To do", "Doing", "Done"];
+      keys.forEach((key) => {
+        const tasks = JSON.parse(toDoStorage.getItem(key) || "[]");
         newBoards[key] = tasks;
-      }
+      });
       return newBoards;
     });
   }, []);
@@ -81,14 +80,16 @@ function Root() {
         newBoards[key] = [...oldBoards[key]]; // 깊은 복사
       });
 
-      // Boards 수정 및 Session storage 수정
-      const newSrcBoard = newBoards[srcDroppableId].splice(source.index, 1);
-      newBoards[destDroppableId].splice(destination.index, 0, { ...task });
-      const newDestBoard = [...newBoards[destDroppableId]]; // splice는 아무 것도 제거하지 않으면 빈 배열을 반환한다.
-
+      // Boards 수정
+      newBoards[srcDroppableId].splice(source.index, 1); // splice는 제거한 값을 담은 배열을 반환한다. 제거하고 난 뒤의 배열을 반환하는 줄 착각
+      newBoards[destDroppableId].splice(destination.index, 0, { ...task }); // 아무 것도 제거하지 않으면 빈 배열을 반환한다.
       // Session storage 수정
-      toDoStorage[srcDroppableId] = JSON.stringify([...newSrcBoard]);
-      toDoStorage[destDroppableId] = JSON.stringify([...newDestBoard]);
+      toDoStorage[srcDroppableId] = JSON.stringify([
+        ...newBoards[srcDroppableId],
+      ]);
+      toDoStorage[destDroppableId] = JSON.stringify([
+        ...newBoards[destDroppableId],
+      ]);
       return newBoards;
     });
 
